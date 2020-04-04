@@ -54,6 +54,10 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
 
         // 1、阈值计算
 
+        // 2、组合算法选择虚拟机
+
+        // 3、选择目标主机
+
         return new double[0];
     }
 }
