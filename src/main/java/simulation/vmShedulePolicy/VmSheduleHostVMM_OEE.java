@@ -2,7 +2,6 @@ package simulation.vmShedulePolicy;
 
 import simulation.core.Host;
 import simulation.core.Vm;
-import simulation.example.VMM_OEE;
 import simulation.utils.ExampleConstant;
 import simulation.utils.ExampleUtils;
 import simulation.utils.NetworkCalculate;
@@ -83,7 +82,7 @@ public class VmSheduleHostVMM_OEE extends VmSheduleHost{
             }
             if(selectVm != null) {
                 // 请求虚拟机mips
-                VMM_OEE.mipsRequest += selectVm.getMips();
+                //VMM_OEE.mipsRequest += selectVm.getMips();
                 //计算迁移代价
                 double[] netValue = NetworkCalculate.netValueBefore(null,host.getVmList());
                 MinMIgration(selectVm, hostList, host);
@@ -155,7 +154,7 @@ public class VmSheduleHostVMM_OEE extends VmSheduleHost{
             }
         }
         if(selectHost != null) {
-            VMM_OEE.mipsAllcation += selectVm.getMips();
+            //VMM_OEE.mipsAllcation += selectVm.getMips();
             ExampleUtils.updateVmInHost(selectHost,selectVm);
             ExampleUtils.finishVmInHost(selectVm,host);
             selectVm.setHost(selectHost);

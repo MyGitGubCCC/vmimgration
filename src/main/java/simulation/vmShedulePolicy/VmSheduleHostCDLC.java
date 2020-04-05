@@ -3,7 +3,6 @@ package simulation.vmShedulePolicy;
 
 import simulation.core.Host;
 import simulation.core.Vm;
-import simulation.example.CDLC;
 import simulation.utils.*;
 
 import java.io.FileNotFoundException;
@@ -61,24 +60,15 @@ public class VmSheduleHostCDLC extends VmSheduleHost{
             }
             // 从selectVmList可选虚拟机队列中再寻找虚拟机
             // 读取数据
-            double uii = 0;
-            double U = 0;
+            double U;
             for(Vm vm : selectVmList) {
-                ArrayList<String[]> vmMips
-                        = ToArrayByFileReader.readerByFile(FilePath.DATA_PATH + "\\" + "CDLD" + "\\cpuUtilization\\vm_" + vm.getId());
-                String a[] = new String[100];
-                for(int i=0;i<vmMips.size();i++){
-                    a = vmMips.get(i);
-
-                }
-                for(int i=0;i<a.length;i++){
-                    uii = Double.parseDouble(a[i]);
-                    U += uii*vm.getMips()/vm.getHost().getMips();
-                }
+                // 返回的是平均值
+                U = ToArrayByFileReader.calculateCpuHistorical(
+                                FilePath.DATA_PATH + "\\" + "CDLD" + "\\cpuUtilization\\vm_" + vm.getId(),vm);
                 // 选择平均贡献最高的虚拟机
                 if(U > maxVm) {
                     selectVm = vm;
-                    maxVm = vm.getMips();
+                    maxVm = U;
                 }
             }
             // 如果selectVm为空，说明selectVmList为空
@@ -95,7 +85,7 @@ public class VmSheduleHostCDLC extends VmSheduleHost{
             // selectVm就是需要迁移的虚拟机
             if(selectVm != null) {
                 // 虚拟机请求迁移mips
-                CDLC.mipsRequest += selectVm.getMips();
+                //CDLC.mipsRequest += selectVm.getMips();
                 // 迁移网络为netValue
                 double[] netValue = NetworkCalculate.netValueBefore(selectVm,null);
                 // 打印迁移信息
@@ -105,7 +95,7 @@ public class VmSheduleHostCDLC extends VmSheduleHost{
                 if(goalHost != null) {
                     //计算迁移代价
                     migEnergy += (netValue[0]+netValue[1]) * ExampleConstant.DATACENTER_COST_BW;
-                    CDLC.mipsAllcation += selectVm.getMips();
+                    //CDLC.mipsAllcation += selectVm.getMips();
                     //System.out.println(migEnergy);
                 }else {
                     System.out.println("虚拟机目前没有合适的主机放置");

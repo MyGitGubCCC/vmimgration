@@ -30,33 +30,35 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
         double tUpper = 0.7;
         double tLower = 0.45;
         // 动态阈值
-        double tSupper = 0.7;
-        double tSlower = 0.3;
+        double tSupper;
+        double tSlower;
         // 过载程度阈值
-        double edup = 0.0;
-        double eddown = 0.0000;
-/*
-        //double tSupper =
+        double edup = 111;
+        double eddown = 65;
+        // 平衡因子
+        double w = 0;
+        // 根据TEST算法计算出来的
+        double netMax = 18500;
+
+
+        // 动态阈值计算
         // load是当前所有主机负载平均值
         double load = 0;
         // avr是历史CPU负载平均值
         double avr = 0;
+        double average = 0;
         for(Host host : hostList){
             load += host.getCpuUtilization();
-            ArrayList<String[]> hostCpuHistory
-                    = ToArrayByFileReader.readerByFile(FilePath.DATA_PATH
+            average += ToArrayByFileReader.calculateCpuHistoricalAverage(FilePath.DATA_PATH
                     + "\\" + "Threeway-Migration" + "\\cpuUtilization\\vm_" + host.getId());
-            String a[] = new String[100];
-            for(int i=0;i<hostCpuHistory.size();i++){
-                a = hostCpuHistory.get(i);
-            }
-            for(int i=0;i<a.length;i++){
-                avr += Double.parseDouble(a[i]);
-            }
-            avr=avr/hostCpuHistory.size();
         }
-        load = load/hostList.size();*/
+        load = load/hostList.size();
+        avr=average/hostList.size();
+        double dev = Math.sqrt(Math.pow((load - avr),2)/hostList.size());
 
+        tSupper = ((load - avr) * dev)/hostList.size() * w + tUpper;
+        tSlower = ((load - avr) * dev)/hostList.size() * w + tLower;
+        System.out.println("此次动态阈值为：" + tSupper + " / " + tSlower);
         // 初始化不同负载主机列表
         List<Host> highHostList = new ArrayList<Host>();
         List<Host> normalHostList = new ArrayList<Host>();
@@ -66,8 +68,8 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
         //迁移开始
         for(Host host : hostList){
             if (host.getCpuUtilization() > tSupper) highHostList.add(host);
-            else if(host.getCpuUtilization() <= tSupper && host.getCpuUtilization() >= tLower) normalHostList.add(host);
-            else if(host.getCpuUtilization() < tLower && host.getCpuUtilization() > 0) lowHostList.add(host);
+            else if(host.getCpuUtilization() <= tSupper && host.getCpuUtilization() >= tSlower) normalHostList.add(host);
+            else if(host.getCpuUtilization() < tSlower && host.getCpuUtilization() > 0) lowHostList.add(host);
             else nullHostList.add(host);
         }
 
@@ -78,7 +80,7 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
                 Host goalHost;
                 // 三支决策
                 // 计算ed
-                double ed = caluate(host,tSupper);
+                double ed = (int)caluate(host,tSupper,netMax);
 
                 // 第一种迁移决策
                 if(ed > edup){
@@ -102,7 +104,7 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
                 else if(ed <= edup && ed >= eddown){
                     // 第二种迁移决策
                     List<Vm> migVmGroup = mig2(host,tSupper);
-                    if(migVmGroup!=null){
+                    if(migVmGroup != null){
                         migMessage[1] += 1;
                         for(Vm vm: migVmGroup){
                             // 请求虚拟机资源
@@ -143,7 +145,7 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
             }
         }
         // 遍历低负载主机
-        if(lowHostList.size() >= 1){
+        if(lowHostList!=null){
             for(Host host : lowHostList){
                 List<Vm> migGroup = new ArrayList<Vm>();
                 for (Vm vm : host.getVmList()){
@@ -248,11 +250,7 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
                     });
                 }
                 if(selectVmList.get(j).getMips() == selectVmList.get(i).getMips()){
-                    double[] neti = NetworkCalculate.netValueBefore(selectVmList.get(i),null);
-                    double[] netj = NetworkCalculate.netValueBefore(selectVmList.get(j),null);
-                    double netValuej = netj[0]+netj[1];
-                    double netValuei = neti[0]+neti[1];
-                    if(netValuej > netValuei){
+                    if(selectVmList.get(j).getNet() > selectVmList.get(i).getNet()){
                         removeVmList.add(selectVmList.get(j));
                     }
                 }
@@ -357,9 +355,11 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
         if(migVm !=null){
             goalHost = hostSelect(migVm, normalHostList);
             if(goalHost == null){
-                goalHost = nullHostList.get(0);
-                nullHostList.remove(goalHost);
-                lowHostList.add(goalHost);
+                if(nullHostList.size()>0){
+                    goalHost = nullHostList.get(0);
+                    nullHostList.remove(goalHost);
+                    //lowHostList.add(goalHost);
+                }
             }
         }
         return goalHost;
@@ -371,7 +371,7 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
      * @param tSupper
      * @return
      */
-    private double caluate(Host host, double tSupper) {
+    private double caluate(Host host, double tSupper,double netMAX) {
         double over = (host.getCpuUtilization() - tSupper)/(1-tSupper)*10;
         double netValue = 0;
         for(Vm vm : host.getVmList()){
@@ -380,8 +380,7 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
             netValue += net[0]+net[1];
             vm.setNet(netValue);
         }
-        netValue = netValue/host.getVmList().size();
-        double ed = over*over/netValue*ExampleConstant.DATACENTER_COST_BW;
+        double ed = Math.pow(over,2)/(netValue/18500*10);
 
         return ed;
     }

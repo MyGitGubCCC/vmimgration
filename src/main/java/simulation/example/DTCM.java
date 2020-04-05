@@ -13,7 +13,9 @@ import simulation.utils.ExampleUtils;
 import simulation.vmAllocationPolicy.VmAllocationPolicy;
 import simulation.vmAllocationPolicy.VmAllocationPolicySimple;
 import simulation.vmShedulePolicy.VmSheduleHost;
+import simulation.vmShedulePolicy.VmSheduleHostDTCM;
 import simulation.vmShedulePolicy.VmSheduleHostKAI_MPCM;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +26,7 @@ import java.util.List;
  * @author: 杨翎
  * @createDate: 2020-02-14 12:38
  */
-public class KAI_MPCM {
+public class DTCM {
 
     //任务列表
     private static List<Cloudlet> cloudletList;
@@ -54,7 +56,7 @@ public class KAI_MPCM {
         // 定义模拟的开始时钟，调度间隔（1秒）createClouletRelated
         int starSimTime = 0;
         // 数据中心名称为Threeway-VmMigration
-        String DatacenterName = "KAI_MPCM";
+        String DatacenterName = "DTCM";
         // 初始能耗
         double cpuEnergy = 0.0;
         double ramEnergy = 0.0;
@@ -70,7 +72,7 @@ public class KAI_MPCM {
         // 初始化虚拟机放置策略,使用firstfit
         VmAllocationPolicy vmAllocationPolicy = new VmAllocationPolicySimple();
         // 初始化虚拟机迁移策略,使用Three-way Migration
-        VmSheduleHost vmSheduleHost = new VmSheduleHostKAI_MPCM();
+        VmSheduleHost vmSheduleHost = new VmSheduleHostDTCM();
         // 初始化任务选择策略
         CloudletPlacement cloudletPlacement = new CloudletPlacementFistFit();
         // 任务调度算法，使用FCFS
@@ -156,6 +158,6 @@ public class KAI_MPCM {
         System.out.println("虚拟机请求mips:" +mipsRequest);
         System.out.println("虚拟机实际分配mips:" +mipsAllcation);
         System.out.println("SLA违约率为：" + (mipsRequest - mipsAllcation)/mipsRequest);
-        //System.out.println("负载平均值：" + balance);
+        System.out.println("负载平均值：" + balance);
     }
 }

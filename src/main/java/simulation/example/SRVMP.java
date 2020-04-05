@@ -93,7 +93,7 @@ public class SRVMP {
             else mipsRequest += vm.getMips();
         }
         //虚拟机之间由于任务而创建的相关性
-        //CreateDatacenterUtiles.createVmRelated(vmList);
+        CreateDatacenterUtiles.createVmRelated(vmList);
 
         // 2、开始任务的调度执行过程（重点）
         // 查看任务列表有无任务
@@ -154,6 +154,6 @@ public class SRVMP {
         System.out.println("虚拟机实际分配mips:" +mipsAllcation);
         System.out.println("虚拟机请求mips:" +mipsRequest);
         System.out.println("SLA违约率为：" + (mipsRequest - mipsAllcation)/mipsRequest);
-        System.out.println("负载平均值：" + balance);
+        //System.out.println("负载平均值：" + balance);
     }
 }

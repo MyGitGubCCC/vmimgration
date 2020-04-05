@@ -48,28 +48,31 @@ public class VmSheduleHostSRVMP extends VmSheduleHost{
             double selectVmMips = 0;
             // 最终迁移的组是migVm
             List<Vm> migVm = new ArrayList<Vm>();
-            while((host.getMips() - host.getAvailablemips() - selectVmMips)/host.getMips() > up){
-                // 找到最大Mips的虚拟机
-                double maxMips = Double.MIN_VALUE;
-                for(Vm vm : selectVmList){
-                    if(vm.getMips() > maxMips){
-                        selectVm = vm;
-                    }
+            // 找到最大Mips的虚拟机
+            double maxMips = Double.MIN_VALUE;
+            for(Vm vm : selectVmList){
+                if(vm.getMips() > maxMips){
+                    selectVm = vm;
+                    maxMips = vm.getMips();
                 }
-                selectVmList.remove(selectVm);
-                migVm.add(selectVm);
             }
-            while((host.getMips() - host.getAvailablemips() - selectVmMips)/host.getMips() > up ||
+            selectVmList.remove(selectVm);
+            migVm.add(selectVm);
+            selectVmMips = selectVm.getMips();
+            if((host.getMips() - host.getAvailablemips() - selectVmMips)/host.getMips() > up||
                     (host.getMips() - host.getAvailablemips() - selectVmMips)/host.getMips() < up-bound){
                 // 选择网络相关性最大的虚拟机
                 double maxnet = 0;
                 for(Vm vm : selectVmList) {
-                    double[] net = NetworkCalculate.netValueBefore(vm,null);
-                    double a = net[0] + net[1];
-                    if(a >= maxnet) {
+                    if(vm.getNet() >= maxnet) {
                         selectVm = vm;
+                        maxnet = vm.getNet();
                     }
                 }
+            }
+            selectVmMips += selectVm.getMips();
+            if((host.getMips() - host.getAvailablemips() - selectVmMips)/host.getMips() > up||
+                    (host.getMips() - host.getAvailablemips() - selectVmMips)/host.getMips() < up-bound){
                 migVm.add(selectVm);
             }
             System.out.println("主机" + host.getId() + "上的虚拟机迁移组需要进行迁移！");

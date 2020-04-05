@@ -126,47 +126,36 @@ public class TEST {
             // 时间加1
             starSimTime ++;
             // 计算能耗
-            double netMax = Double.MIN_VALUE;
+            //double netMax = Double.MIN_VALUE;
             for(Host host : hostList) {
                 double netsum = 0;
-                if(host.getCpuUtilization()!=0){
+                double ed = 0;
+                if(host.getCpuUtilization() > 0.7){
+                    String loadPath2 = FilePath.DATA_PATH + "\\" + "TEST" + "\\load2";
                     String loadPath = FilePath.DATA_PATH + "\\" + "TEST" + "\\load";
                     String netPath = FilePath.DATA_PATH + "\\" + "TEST" + "\\netEnger";
-                    WriteUtile.writeToFile(1*(host.getCpuUtilization()*100-70)/30*10 + "", loadPath);
+                    String edPath = FilePath.DATA_PATH + "\\" + "TEST" + "\\ed";
+                    WriteUtile.writeToFile(host.getCpuUtilization()*100-70 + "", loadPath);
+                    WriteUtile.writeToFile(Math.pow((host.getCpuUtilization()*100-70)/30*10,2) + "", loadPath2);
 
-                    double[] net = new double[2];
-                    double net1 = 0;
-                    double net2 = 0;
+                    double[] net;
                     for(Vm vm : host.getVmList()){
                         net = NetworkCalculate.netValueBefore(vm,null);
-                        net1 += net[0];
-                        net2 += net[1];
-                        netsum += net1 + net2;
+                        netsum += net[0] + net[1];
                     }
-                    System.out.println("主机网络相关：" + netsum);
+                    /*System.out.println("主机网络相关：" + netsum);
                     if(netsum>netMax){
                         netMax = netsum;
-                    }
-
+                    }*/
+                    double netMax = 18500;
                     //System.out.println((1*host.getCpuUtilization()/0.3)/(1*(net1+net2))/3823250);
-                    WriteUtile.writeToFile(netsum/3823250*10 + "", netPath);
+                    WriteUtile.writeToFile(netsum/netMax*10 + "", netPath);
+                    ed = (Math.pow((host.getCpuUtilization()*100-70)/30*10,2))/(netsum/netMax*10);
+                    WriteUtile.writeToFile(ed + "", edPath);
                 }
 
             }
-            System.out.println("最大网络相关是"+netMax);
-            // 计算主机负载均衡度
-            average = average/hostList.size();
-            /*
-            for(Host host : hostList){
-                balance += Math.pow((host.getCpuUtilization() - average),2);
-            }
-            balance = balance/hostList.size();*/
-            // 总能耗
-            engerSum += cpuEnergy + ramEnergy + migMessage[0];
-            // 迁移能耗
-            sumMig += migMessage[0];
-            // 迁移次数
-            migNumber += migMessage[1];
+            //System.out.println("最大网络相关是"+netMax);
         }
     }
 

@@ -162,7 +162,7 @@ public class THREE_WAY {
         System.out.println("虚拟机请求mips:" + THREE_WAY.mipsRequest);
         System.out.println("虚拟机实际分配mips:" + THREE_WAY.mipsAllcation);
         System.out.println("SLA违约率为：" + (mipsRequest - mipsAllcation)/mipsRequest);
-        System.out.println("负载平均值：" + average);
+        //System.out.println("负载平均值：" + average);
     }
 
 }

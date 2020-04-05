@@ -59,8 +59,8 @@ public class ExampleConstant {
     /**
      * 主机、虚拟机、任务数量
      */
-    public final static int HOSTS_NUMBER = 50;
-    public final static int VMS_NUMBER = 100;
-    public final static int CLOUDLET_NUMBER = 20;
+    public final static int HOSTS_NUMBER = 100;
+    public final static int VMS_NUMBER = 200;
+    public final static int CLOUDLET_NUMBER = 2000;
 
 }

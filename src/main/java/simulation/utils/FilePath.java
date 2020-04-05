@@ -7,7 +7,7 @@ package simulation.utils;
  * @createDate: 2019-08-08 16:37
  */
 public class FilePath {
-    public static String DATA_PATH ="D:\\IdeaProjects\\YangLingProjects\\vmimgration\\src\\file\\DATA";
-    public static String CURRENT_PATH ="D:\\IdeaProjects\\YangLingProjects\\vmimgration\\src\\file";
+    public static String DATA_PATH ="D:\\ideaProject\\vmimgration\\src\\file\\DATA";
+    public static String CURRENT_PATH ="D:\\ideaProject\\vmimgration\\src\\file";
 
 }
