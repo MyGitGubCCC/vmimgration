@@ -65,21 +65,22 @@ public class CreateDatacenterUtiles {
      */
     public static void createClouletRelated(List<Cloudlet> cloudletList) {
         for(int i = 0; i<cloudletList.size(); i++) {
-            int relatedNumber = i % ExampleConstant.NETWORK_MAXNUMBER;
-            int relatedMaxDistance = i % ExampleConstant.NETWORK_MAXDISTANCENUMBER;
-            for(int j = 0; j < ExampleConstant.NETWORK_NUMBER[relatedNumber]; j++) {
+            int relatedNumber = ExampleConstant.NETWORK_NUMBER[i%ExampleConstant.NETWORK_MAXNUMBER];
+            if(relatedNumber==0)continue;
+            int relatedMaxDistance = ExampleConstant.NETWORK_DISTANCE[i%ExampleConstant.NETWORK_MAXDISTANCENUMBER];
+            for(int j = 0; j < relatedNumber; j++) {
                 List<Cloudlet> related = new ArrayList<Cloudlet>();
                 List<Cloudlet> relatedopposite = new ArrayList<Cloudlet>();
                 related.add(cloudletList.get(i));
                 if((i + (ExampleConstant.NETWORK_DISTANCE[relatedMaxDistance]) > cloudletList.size())) continue;
-                related.add(cloudletList.get(i + (ExampleConstant.NETWORK_DISTANCE[relatedMaxDistance])));
+                related.add(cloudletList.get(i + relatedMaxDistance));
                 Map<List<Cloudlet>, Integer> relatedCloulet = new HashMap<List<Cloudlet>, Integer>();
                 Map<List<Cloudlet>, Integer> relatedClouletopposite = new HashMap<List<Cloudlet>, Integer>();
                 relatedCloulet.put(related,ExampleConstant.CLOUDLET_FILESIZE[relatedMaxDistance]);
                 relatedopposite.add(cloudletList.get(i));
                 relatedClouletopposite.put(relatedopposite,ExampleConstant.CLOUDLET_FILESIZE[relatedMaxDistance]);
                 cloudletList.get(i).setRelatedCloulet(relatedCloulet);
-                cloudletList.get((i + (ExampleConstant.NETWORK_DISTANCE[relatedMaxDistance]))).setRelatedCloulet(relatedCloulet);
+                cloudletList.get((i + relatedMaxDistance)).setRelatedCloulet(relatedCloulet);
             }
         }
     }

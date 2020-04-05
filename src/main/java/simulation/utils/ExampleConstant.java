@@ -17,16 +17,16 @@ public class ExampleConstant {
     /**
      * 任务长度
      */
-    public final static int[] CLOUDLET_LENGTH = {800, 1000, 1500, 2000, 2200};
-    public final static int[] CLOUDLET_FILESIZE	= {100, 150, 200, 500, 300};
+    public final static int[] CLOUDLET_LENGTH = {2200, 1000, 2000,800, 1500};
+    public final static int[] CLOUDLET_FILESIZE	= {500,300,200,150,100};
 
     /**
      * 虚拟机之间的网络联系
      */
     public final static int NETWORK_MAXNUMBER = 3;
-    public final static int[] NETWORK_NUMBER = {0,1,2};
+    public final static int[] NETWORK_NUMBER = {0,1,2,3};
     public final static int NETWORK_MAXDISTANCENUMBER = 4;
-    public final static int[] NETWORK_DISTANCE = {1,2,3,4};
+    public final static int[] NETWORK_DISTANCE = {1,3,2,4,5};
 
     /*
      * VM instance types:
@@ -59,8 +59,8 @@ public class ExampleConstant {
     /**
      * 主机、虚拟机、任务数量
      */
-    public final static int HOSTS_NUMBER = 200;
-    public final static int VMS_NUMBER = 400;
-    public final static int CLOUDLET_NUMBER = 3000;
+    public final static int HOSTS_NUMBER = 50;
+    public final static int VMS_NUMBER = 100;
+    public final static int CLOUDLET_NUMBER = 20;
 
 }

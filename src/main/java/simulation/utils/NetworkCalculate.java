@@ -81,6 +81,7 @@ public class NetworkCalculate {
             for (int i = 0; i < vm.getNetRelatedVm().size(); i++) {
                 if(vm.getNetRelatedVm().get(i) != null) {
                     if (vm.getNetRelatedVm() == vm) continue;
+                    // 主机内相关
                     if (vm.getNetRelatedVm().get(i).getHost().getId() == host.getId()) {
                         for (int j = 0; j < vm.getNetRelatedVm().get(i).getCloudletList().size(); j++) {
                             net[0] += netvalue(vm,i, j);

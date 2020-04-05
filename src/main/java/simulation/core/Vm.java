@@ -35,6 +35,8 @@ public class Vm {
     //虚拟机是否需要构建迁移组
     private boolean isNeedGroup;
     private int vmLoadByHost;
+    // 虚拟机的网络相关
+    private double net;
 
     public Vm(int id, double mips, double ram, double bw) {
         this.id = id;
@@ -211,5 +213,13 @@ public class Vm {
 
     public void setExcludedHostList(List<Host> excludedHostList) {
         this.excludedHostList = excludedHostList;
+    }
+
+    public double getNet() {
+        return net;
+    }
+
+    public void setNet(double net) {
+        this.net = net;
     }
 }

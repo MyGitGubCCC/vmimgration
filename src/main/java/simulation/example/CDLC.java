@@ -82,7 +82,7 @@ public class CDLC {
 
         // 开始模拟（没有代理和数据中心类，直接操作host、vm、cloudlet）
         System.out.println("模拟" + DatacenterName + "开始!");
-        //虚拟机放置主机，采用fistfit策略
+        // 虚拟机放置主机，采用fistfit策略
         for (Vm vm : vmList) {
             //使用vmAllocationPolicy策略
             Host host = vmAllocationPolicy.getHost(hostList, vm);
