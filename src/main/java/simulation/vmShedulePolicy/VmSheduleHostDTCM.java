@@ -1,5 +1,6 @@
 package simulation.vmShedulePolicy;
 
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import simulation.core.Host;
 import simulation.core.Vm;
 import simulation.example.THREE_WAY;
@@ -118,6 +119,7 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
                     }
                 }
             }
+
             // 3、选择目标主机
             if(migVm!=null){
                 Host goalHost = null;
@@ -158,10 +160,10 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
             }
 
             // Transpose the matrix so that it fits the linear model
-            //final double[][] xT = new Array2DRowRealMatrix(x).transpose().getData();
+            final double[][] xT = new Array2DRowRealMatrix(x).transpose().getData();
 
             // RSquare is the "coefficient of d etermination"
-            //correlationCoefficients.add(MathUtil.createLinearRegression(xT, data[i]).calculateRSquared());
+            correlationCoefficients.add(MathUtil.createLinearRegression(xT, data[i]).calculateRSquared());
         }
         return correlationCoefficients;
     }
