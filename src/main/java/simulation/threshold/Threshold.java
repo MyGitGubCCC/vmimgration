@@ -24,6 +24,11 @@ public class Threshold {
         }
         System.out.println("ed的最大值为：" + (int)max);
         System.out.println("ed的最小值为：" + (int)min);
+        int a = (int) (max-min)/3;
+        int up = (int)max - a;
+        int down = (int)min + a;
+        System.out.println("ed上阈值为：" + up);
+        System.out.println("ed下阈值为：" + down);
     }
 
 }

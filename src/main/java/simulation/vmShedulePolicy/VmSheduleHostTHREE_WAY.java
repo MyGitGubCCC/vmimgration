@@ -33,12 +33,12 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
         double tSupper;
         double tSlower;
         // 过载程度阈值
-        double edup = 111;
-        double eddown = 65;
+        double edup = 37;
+        double eddown = 22;
         // 平衡因子
-        double w = 0;
+        double w = 1000;
         // 根据TEST算法计算出来的
-        double netMax = 18500;
+        double netMax = 6200;
 
 
         // 动态阈值计算
@@ -56,6 +56,8 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
         avr=average/hostList.size();
         double dev = Math.sqrt(Math.pow((load - avr),2)/hostList.size());
 
+        double a = ((load - avr) * dev)/hostList.size() * w;
+        System.out.println(a);
         tSupper = ((load - avr) * dev)/hostList.size() * w + tUpper;
         tSlower = ((load - avr) * dev)/hostList.size() * w + tLower;
         System.out.println("此次动态阈值为：" + tSupper + " / " + tSlower);
@@ -87,14 +89,14 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
                     // 选择虚拟机策略1
                     migVm = mig1(host);
                     // 请求虚拟机资源
-                    THREE_WAY.mipsRequest = migVm.getMips();
+                    THREE_WAY.mipsRequest += migVm.getMips();
                     migMessage[1] += 1;
                     // 目标主机策略
                     goalHost = goalHostPolicy(migVm,normalHostList,lowHostList,nullHostList);
                     //资源更新
                     if(goalHost !=null ){
                         // 分配虚拟机资源
-                        THREE_WAY.mipsAllcation = migVm.getMips();
+                        THREE_WAY.mipsAllcation += migVm.getMips();
                         double[] net = NetworkCalculate.netValueBefore(migVm,null);
                         //返回能耗
                         migMessage[0] += updateVmAndHost(
@@ -108,13 +110,13 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
                         migMessage[1] += 1;
                         for(Vm vm: migVmGroup){
                             // 请求虚拟机资源
-                            THREE_WAY.mipsRequest = vm.getMips();
+                            THREE_WAY.mipsRequest += vm.getMips();
                             // 目标主机策略
                             goalHost = goalHostPolicy(vm,normalHostList,lowHostList,nullHostList);
                             //资源更新
                             if(goalHost !=null ){
                                 // 分配虚拟机资源
-                                THREE_WAY.mipsAllcation = vm.getMips();
+                                THREE_WAY.mipsAllcation += vm.getMips();
                                 double[] net = NetworkCalculate.netValueBefore(vm,null);
                                 //返回能耗
                                 migMessage[0] += updateVmAndHost(
@@ -128,13 +130,13 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
                     migVm = mig3(host);
                     if(migVm !=null){
                         // 请求虚拟机资源
-                        THREE_WAY.mipsRequest = migVm.getMips();
+                        THREE_WAY.mipsRequest += migVm.getMips();
                         migMessage[1] += 1;
                         // 目标主机放置
                         goalHost = goalHostPolicy(migVm,normalHostList,lowHostList,nullHostList);
                         if(goalHost !=null ){
                             // 分配虚拟机资源
-                            THREE_WAY.mipsAllcation = migVm.getMips();
+                            THREE_WAY.mipsAllcation += migVm.getMips();
                             double[] net = NetworkCalculate.netValueBefore(migVm,null);
                             //返回能耗
                             migMessage[0] += updateVmAndHost(
@@ -161,13 +163,13 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
                     for(Vm vm : migGroup){
                         // 目标主机
                         // 请求虚拟机资源
-                        THREE_WAY.mipsRequest = vm.getMips();
+                        THREE_WAY.mipsRequest += vm.getMips();
                         // 目标主机策略
                         Host goalHost = goalHostPolicy(vm,normalHostList,lowHostList,nullHostList);
                         //资源更新
                         if(goalHost !=null ){
                             // 分配虚拟机资源
-                            THREE_WAY.mipsAllcation = vm.getMips();
+                            THREE_WAY.mipsAllcation += vm.getMips();
                             double[] net = NetworkCalculate.netValueBefore(vm,null);
                             //返回能耗
                             migMessage[0] += updateVmAndHost(
@@ -374,13 +376,16 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
     private double caluate(Host host, double tSupper,double netMAX) {
         double over = (host.getCpuUtilization() - tSupper)/(1-tSupper)*10;
         double netValue = 0;
+        double hostnet = 0;
         for(Vm vm : host.getVmList()){
             netValue = 0;
             double[] net = NetworkCalculate.netValueBefore(vm,null);
             netValue += net[0]+net[1];
             vm.setNet(netValue);
+            hostnet += netValue;
         }
-        double ed = Math.pow(over,2)/(netValue/18500*10);
+        double ed = Math.pow(over,2)/(hostnet/netMAX*10);
+        host.setNet(hostnet);
 
         return ed;
     }

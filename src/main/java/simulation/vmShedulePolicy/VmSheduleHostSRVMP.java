@@ -78,13 +78,17 @@ public class VmSheduleHostSRVMP extends VmSheduleHost{
             System.out.println("主机" + host.getId() + "上的虚拟机迁移组需要进行迁移！");
 
             // 迁移虚拟机组已经构成，是migVm，现在找目标主机
+            for(Vm vm:migVm){
+                // 迁移组请求的mips
+                SRVMP.mipsRequest += vm.getMips();
+
+            }
             Host selectHost;
             selectHost = selectHostByVm(migVm,normalHost);
             if(selectHost != null) {
                 double[] netValue = NetworkCalculate.netValueBefore(null,migVm);
-                // 迁移组请求的mips
                 for (Vm vm : migVm) {
-                    SRVMP.mipsRequest += vm.getMips();
+                    SRVMP.mipsAllcation += vm.getMips();
                     ExampleUtils.finishVmInHost(vm,host);
                     ExampleUtils.updateVmInHost(selectHost,vm);
                     host.getVmList().remove(vm);
@@ -92,7 +96,7 @@ public class VmSheduleHostSRVMP extends VmSheduleHost{
                     selectHost.getVmList().add(vm);
                 }
                 migEnergy += (netValue[0]+netValue[1]) * ExampleConstant.DATACENTER_COST_BW;
-                System.out.println("虚拟机迁移到目标主机上");
+                System.out.println("虚拟机迁移到目标主机" + selectHost.getId() + "上");
             }else System.out.println("虚拟机目前没有可以迁移的主机");
         }
         migMessage[0] = migEnergy;

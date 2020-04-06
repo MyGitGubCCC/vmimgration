@@ -26,6 +26,7 @@ public class Host {
     //主机上虚拟机列表
     private List<Vm> vmList;
     private boolean ifMig;
+    private double net;
 
     /**
      * 有能耗模型的构造器
@@ -195,5 +196,13 @@ public class Host {
 
     public void setIfMig(boolean ifMig) {
         this.ifMig = ifMig;
+    }
+
+    public double getNet() {
+        return net;
+    }
+
+    public void setNet(double net) {
+        this.net = net;
     }
 }

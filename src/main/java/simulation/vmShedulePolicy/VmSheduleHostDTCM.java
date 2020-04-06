@@ -42,11 +42,8 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
         // 动态阈值
         double tSupper;
         double tSlower;
-        // 过载程度阈值
-        double edup = 0;
-        double eddown = 0;
         // 平衡因子
-        double w = 0;
+        double w = 1000;
         double DEV = 0;
 
         /*
@@ -89,7 +86,7 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
         for(Host host : highHostList){
             Vm migVm = null;
             // 请求虚拟机资源
-            THREE_WAY.mipsRequest = migVm.getMips();
+            THREE_WAY.mipsRequest += migVm.getMips();
             migMessage[1] += 1;
             // 如果dev>DEV
             if(dev > DEV){
@@ -125,18 +122,16 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
             if(migVm!=null){
                 Host goalHost = null;
                 for(Host host1: lowHostList){
-                    boolean put = ExampleUtils.vmIsAvailableHost(migVm, host);
+                    boolean put = ExampleUtils.vmIsAvailableHost(migVm, host1);
                     if(put == true) {
-                        if((host.getMips() - host.getAvailablemips() + migVm.getMips())/host.getMips() <= 0.7){
-                            goalHost = host;
-                            break;
-                        }
+                        goalHost = host;
+                        break;
                     }
                 }
                 //资源更新
                 if(goalHost !=null ){
                     // 分配虚拟机资源
-                    THREE_WAY.mipsAllcation = migVm.getMips();
+                    THREE_WAY.mipsAllcation += migVm.getMips();
                     double[] net = NetworkCalculate.netValueBefore(migVm,null);
                     //返回能耗
                     migMessage[0] += updateVmAndHost(
