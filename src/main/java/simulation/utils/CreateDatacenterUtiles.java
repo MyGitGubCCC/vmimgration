@@ -72,7 +72,7 @@ public class CreateDatacenterUtiles {
                 List<Cloudlet> related = new ArrayList<Cloudlet>();
                 List<Cloudlet> relatedopposite = new ArrayList<Cloudlet>();
                 related.add(cloudletList.get(i));
-                if((i + (ExampleConstant.NETWORK_DISTANCE[relatedMaxDistance]) > cloudletList.size())) continue;
+                if((i + relatedMaxDistance) >= cloudletList.size()) continue;
                 related.add(cloudletList.get(i + relatedMaxDistance));
                 Map<List<Cloudlet>, Integer> relatedCloulet = new HashMap<List<Cloudlet>, Integer>();
                 Map<List<Cloudlet>, Integer> relatedClouletopposite = new HashMap<List<Cloudlet>, Integer>();

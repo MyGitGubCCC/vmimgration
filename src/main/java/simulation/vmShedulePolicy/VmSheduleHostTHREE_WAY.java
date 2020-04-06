@@ -33,13 +33,12 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
         double tSupper;
         double tSlower;
         // 过载程度阈值
-        double edup = 37;
-        double eddown = 22;
+        double edup = 42;
+        double eddown = 7;
         // 平衡因子
-        double w = 1000;
+        double w = 0.01;
         // 根据TEST算法计算出来的
         double netMax = 6200;
-
 
         // 动态阈值计算
         // load是当前所有主机负载平均值
@@ -47,20 +46,31 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
         // avr是历史CPU负载平均值
         double avr = 0;
         double average = 0;
+        int numHost = 0;
         for(Host host : hostList){
             load += host.getCpuUtilization();
+            if(host.getCpuUtilization() > 0) numHost += 1;
             average += ToArrayByFileReader.calculateCpuHistoricalAverage(FilePath.DATA_PATH
-                    + "\\" + "Threeway-Migration" + "\\cpuUtilization\\vm_" + host.getId());
+                    + "\\" + "Threeway-Migration" + "\\cpuUtilization\\host_" + host.getId());
         }
-        load = load/hostList.size();
+        load = load/numHost;
         avr=average/hostList.size();
-        double dev = Math.sqrt(Math.pow((load - avr),2)/hostList.size());
+        double dev = Math.sqrt(Math.pow((load - avr),2)/numHost);
+        double a = ((load - avr) * dev)/numHost;
+        if(a==0){
+            tSupper = 0.7;
+            tSlower = 0.45;
+            System.out.println("此次动态阈值为：" + tSupper + " / " + tSlower);
+        }else {
+            while (Math.abs(a)<1){
+                a = a*10;
+            }
+            //System.out.println(a);
+            tSupper = a * w + tUpper;
+            tSlower = a * w+ tLower;
+            System.out.println("此次动态阈值为：" + tSupper + " / " + tSlower);
+        }
 
-        double a = ((load - avr) * dev)/hostList.size() * w;
-        System.out.println(a);
-        tSupper = ((load - avr) * dev)/hostList.size() * w + tUpper;
-        tSlower = ((load - avr) * dev)/hostList.size() * w + tLower;
-        System.out.println("此次动态阈值为：" + tSupper + " / " + tSlower);
         // 初始化不同负载主机列表
         List<Host> highHostList = new ArrayList<Host>();
         List<Host> normalHostList = new ArrayList<Host>();
@@ -83,11 +93,15 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
                 // 三支决策
                 // 计算ed
                 double ed = (int)caluate(host,tSupper,netMax);
+                host.getCpuUtilization();
 
                 // 第一种迁移决策
                 if(ed > edup){
                     // 选择虚拟机策略1
                     migVm = mig1(host);
+                    if(migVm!=null){
+                        System.out.println("主机" + host.getId() + "上的虚拟机" + migVm.getId() + "迁移");
+                    }
                     // 请求虚拟机资源
                     THREE_WAY.mipsRequest += migVm.getMips();
                     migMessage[1] += 1;
@@ -97,17 +111,20 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
                     if(goalHost !=null ){
                         // 分配虚拟机资源
                         THREE_WAY.mipsAllcation += migVm.getMips();
+                        System.out.println("虚拟机迁移到" + goalHost.getId() + "上");
                         double[] net = NetworkCalculate.netValueBefore(migVm,null);
                         //返回能耗
                         migMessage[0] += updateVmAndHost(
                                 migVm,host,goalHost,net[0]+net[1]);
-                    }
+                    }else System.out.println("迁移失败");
                 }
                 else if(ed <= edup && ed >= eddown){
+                    double ddd = host.getCpuUtilization();
                     // 第二种迁移决策
                     List<Vm> migVmGroup = mig2(host,tSupper);
                     if(migVmGroup != null){
                         migMessage[1] += 1;
+                        System.out.println("主机" + host.getId() + "上的虚拟机迁移组迁移");
                         for(Vm vm: migVmGroup){
                             // 请求虚拟机资源
                             THREE_WAY.mipsRequest += vm.getMips();
@@ -121,27 +138,31 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
                                 //返回能耗
                                 migMessage[0] += updateVmAndHost(
                                         vm,host,goalHost,net[0]+net[1]);
-                            }
+                                System.out.println("虚拟机迁移到" + goalHost.getId() + "上");
+                            }else System.out.println("迁移失败");
                         }
                     }
                 }
                 else if(ed < eddown){
                     // 第三种迁移决策
+                    double ddd = host.getCpuUtilization();
                     migVm = mig3(host);
                     if(migVm !=null){
                         // 请求虚拟机资源
                         THREE_WAY.mipsRequest += migVm.getMips();
                         migMessage[1] += 1;
+                        System.out.println("主机" + host.getId() + "上的虚拟机" + migVm.getId() + "迁移");
                         // 目标主机放置
                         goalHost = goalHostPolicy(migVm,normalHostList,lowHostList,nullHostList);
                         if(goalHost !=null ){
                             // 分配虚拟机资源
                             THREE_WAY.mipsAllcation += migVm.getMips();
                             double[] net = NetworkCalculate.netValueBefore(migVm,null);
+                            System.out.println("虚拟机迁移到" + goalHost.getId() + "上");
                             //返回能耗
                             migMessage[0] += updateVmAndHost(
                                     migVm,host,goalHost,net[0]+net[1]);
-                        }
+                        }else System.out.println("迁移失败");
                     }
                 }
             }
@@ -164,16 +185,19 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
                         // 目标主机
                         // 请求虚拟机资源
                         THREE_WAY.mipsRequest += vm.getMips();
+                        migMessage[1] += 1;
                         // 目标主机策略
                         Host goalHost = goalHostPolicy(vm,normalHostList,lowHostList,nullHostList);
                         //资源更新
                         if(goalHost !=null ){
+                            System.out.println("低负载主机上的虚拟机迁移组迁移到" + goalHost.getId() + "上");
                             // 分配虚拟机资源
                             THREE_WAY.mipsAllcation += vm.getMips();
                             double[] net = NetworkCalculate.netValueBefore(vm,null);
                             //返回能耗
                             migMessage[0] += updateVmAndHost(
                                     vm,host,goalHost,net[0]+net[1]);
+
                         }
                     }
 
@@ -300,19 +324,14 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
         Vm migVm = null;
         // 选择Mips最大的虚拟机
         double mipsMax = Double.MIN_VALUE;
-        Vm mipsMaxVm = null;
         for(Vm vm : host.getVmList()){
             if(vm.getMips() > mipsMax){
                 migVm = vm;
                 mipsMax = vm.getMips();
             }else if(vm.getMips() == mipsMax){
-                double[] net = NetworkCalculate.netValueBefore(vm,null);
-                double netValue = net[0]+net[1];
-                double[] netmipsMax = NetworkCalculate.netValueBefore(mipsMaxVm,null);
-                double netValuemipsMax = netmipsMax[0]+netmipsMax[1];
                 // 当前的网络小于mipsMaxVm的网络
                 // 则选择网络小的
-                if(netValue < netValuemipsMax){
+                if(vm.getNet() < migVm.getNet()){
                     migVm = vm;
                 }else {
                     continue;
@@ -357,10 +376,32 @@ public class VmSheduleHostTHREE_WAY extends VmSheduleHost {
         if(migVm !=null){
             goalHost = hostSelect(migVm, normalHostList);
             if(goalHost == null){
+                goalHost = hostSelect(migVm, lowHostList);
+            }
+            if(goalHost == null){
                 if(nullHostList.size()>0){
-                    goalHost = nullHostList.get(0);
-                    nullHostList.remove(goalHost);
-                    //lowHostList.add(goalHost);
+                    for(Host host : nullHostList){
+                        // 说明之前放置了
+                        if(host.getMips() != host.getAvailablemips()){
+                            boolean put = ExampleUtils.vmIsAvailableHost(migVm, host);
+                            if((host.getMips() - host.getAvailablemips() + migVm.getMips())/host.getMips() <= 0.7
+                                    && put==true){
+                                goalHost = host;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if(goalHost == null){
+                if(nullHostList.size()>0){
+                    for(Host host : nullHostList){
+                        boolean put = ExampleUtils.vmIsAvailableHost(migVm, host);
+                        if(put==true){
+                            goalHost = host;
+                            break;
+                        }
+                    }
                 }
             }
         }

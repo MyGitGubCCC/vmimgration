@@ -69,8 +69,7 @@ public class VmSheduleHostKAI_MPCM extends VmSheduleHost{
             }
         }
 
-        // MPCM：基于CPU利用率与内存大小知己最小的迁移选择算法MPCM
-        List<Vm> selectVmList = new ArrayList<Vm>();
+        // MPCM：基于CPU利用率与内存大小之积最小的迁移选择算法MPCM
         for(Host host : highHostList) {
             // 触发迁移，次数+1
             migNumber++;
@@ -81,49 +80,32 @@ public class VmSheduleHostKAI_MPCM extends VmSheduleHost{
                         "上的虚拟机" + selectvm.getId() + "需要进行虚拟机迁移！");
                 // 虚拟机请求mips
                 KAI_MPCM.mipsRequest += selectvm.getMips();
-                selectVmList.add(selectvm);
-            }
-        }
-        // 迁移的虚拟机排序，从大到小
-        for(int i=0; i< selectVmList.size();i++) {
-            for(int j =1; j< selectVmList.size();j++){
-                if(selectVmList.get(j).getMips() > selectVmList.get(i).getMips()){
-                    int idi = selectVmList.get(i).getId();
-                    int idj = selectVmList.get(j).getId();
-                    selectVmList.get(i).setId(idj);
-                    selectVmList.get(j).setId(idi);
+                Host selectHost;
+                // 目标主机放置算法：选择虚拟机分配后带来功耗最小的主机
+                selectHost = goalHost(selectvm,lowHostList );
+                if(selectHost == null) {
+                    selectHost = goalHost(selectvm,normalHostList);
                 }
-            }
-        }
-
-        // 遍历迁移的虚拟机列表
-        for(Vm vm : selectVmList) {
-            Host selectHost;
-            // 目标主机放置算法：选择虚拟机分配后带来功耗最小的主机
-            selectHost = goalHost(vm,lowHostList );
-            if(selectHost == null) {
-                selectHost = goalHost(vm,normalHostList);
-            }
-            if(selectHost == null) {
-                selectHost = goalHost(vm,nullHostList);
-            }
-            if(selectHost != null) {
-                // 分配虚拟机的mips
-                KAI_MPCM.mipsAllcation += vm.getMips();
-                //计算虚拟机组的网络相关度
-                double[] netValue = NetworkCalculate.netValueBefore(vm,null);
-                migEnergy += (netValue[0] + netValue[1]) *
-                        ExampleConstant.DATACENTER_COST_BW;
-                //更新资源
-                Host host  = vm.getHost();
-                ExampleUtils.finishVmInHost(vm,host);
-                ExampleUtils.updateVmInHost(selectHost,vm);
-                vm.setHost(selectHost);
-                host.getVmList().remove(vm);
-                selectHost.getVmList().add(vm);
-                System.out.println("虚拟机" + vm.getId() + "迁移到主机"+selectHost.getId());
-            }else {
-                System.out.println("虚拟机" + vm.getId() + "目前找不到迁移的目标主机");
+                if(selectHost == null) {
+                    selectHost = goalHost(selectvm,nullHostList);
+                }
+                if(selectHost != null) {
+                    // 分配虚拟机的mips
+                    KAI_MPCM.mipsAllcation += selectvm.getMips();
+                    //计算虚拟机组的网络相关度
+                    double[] netValue = NetworkCalculate.netValueBefore(selectvm,null);
+                    migEnergy += (netValue[0] + netValue[1]) *
+                            ExampleConstant.DATACENTER_COST_BW;
+                    //更新资源
+                    ExampleUtils.finishVmInHost(selectvm,host);
+                    ExampleUtils.updateVmInHost(selectHost,selectvm);
+                    selectvm.setHost(selectHost);
+                    host.getVmList().remove(selectvm);
+                    selectHost.getVmList().add(selectvm);
+                    System.out.println("虚拟机" + selectvm.getId() + "迁移到主机"+selectHost.getId());
+                }else {
+                    System.out.println("虚拟机" + selectvm.getId() + "目前找不到迁移的目标主机");
+                }
             }
         }
         migMessage[0] = migEnergy;

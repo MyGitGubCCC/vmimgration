@@ -84,7 +84,7 @@ public class Host {
     public double getCpuUtilization(){
         double usedMips = 0;
         for (Vm vm : vmList) {
-            usedMips += vm.getMips() - vm.getAvailableMips();
+            usedMips += vm.getMips();
         }
         double cpuUtilizaiton = usedMips / getMips();
         if (cpuUtilizaiton >= 1) cpuUtilizaiton = 1;

@@ -127,7 +127,7 @@ public class TEST {
             starSimTime ++;
             // 计算能耗
             //double netMax = Double.MIN_VALUE;
-            double netMax = 6200;
+            double netMax = 6600;
             for(Host host : hostList) {
                 double netsum = 0;
                 double ed = 0;
@@ -144,9 +144,9 @@ public class TEST {
                         netsum += net[0] + net[1];
                     }
                     System.out.println("主机网络相关：" + netsum);
-                    /*if(netsum>netMax){
+                    if(netsum>netMax){
                         netMax = netsum;
-                    }*/
+                    }
                     //System.out.println((1*host.getCpuUtilization()/0.3)/(1*(net1+net2))/3823250);
                     WriteUtile.writeToFile(netsum/netMax*10 + "", netPath);
                     ed = (Math.pow((host.getCpuUtilization()*100-70)/30*10,2))/(netsum/netMax*10);
@@ -154,7 +154,7 @@ public class TEST {
                 }
 
             }
-            //System.out.println("最大网络相关是"+netMax);
+            System.out.println("最大网络相关是"+netMax);
         }
     }
 

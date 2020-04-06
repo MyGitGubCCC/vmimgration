@@ -44,7 +44,7 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
         double tSupper;
         double tSlower;
         // 平衡因子
-        double w = 1000;
+        double w = 0.01;
         double DEV = 0;
 
         /*
@@ -53,23 +53,36 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
          * 3、选择目标主机
          */
 
-        // 1、阈值计算
+        // 动态阈值计算
         // load是当前所有主机负载平均值
         double load = 0;
         // avr是历史CPU负载平均值
         double avr = 0;
         double average = 0;
+        int numHost = 0;
         for(Host host : hostList){
             load += host.getCpuUtilization();
+            if(host.getCpuUtilization() > 0) numHost += 1;
             average += ToArrayByFileReader.calculateCpuHistoricalAverage(FilePath.DATA_PATH
-                    + "\\" + "Threeway-Migration" + "\\cpuUtilization\\vm_" + host.getId());
+                    + "\\" + "DTCM" + "\\cpuUtilization\\host_" + host.getId());
         }
-        load = load/hostList.size();
+        load = load/numHost;
         avr=average/hostList.size();
-        double dev = Math.sqrt(Math.pow((load - avr),2)/hostList.size());
-        tSupper = ((load - avr) * dev)/hostList.size() * w + tUpper;
-        tSlower = ((load - avr) * dev)/hostList.size() * w + tLower;
-
+        double dev = Math.sqrt(Math.pow((load - avr),2)/numHost);
+        double a = ((load - avr) * dev)/numHost;
+        if(a==0){
+            tSupper = 0.7;
+            tSlower = 0.45;
+            System.out.println("此次动态阈值为：" + tSupper + " / " + tSlower);
+        }else {
+            while (Math.abs(a)<1){
+                a = a*10;
+            }
+            System.out.println(a);
+            tSupper = a * w + tUpper;
+            tSlower = a * w+ tLower;
+            System.out.println("此次动态阈值为：" + tSupper + " / " + tSlower);
+        }
         // 判断主机负载
         // 初始化不同负载主机列表
         List<Host> highHostList = new ArrayList<Host>();
@@ -86,16 +99,16 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
         // 2、组合算法选择虚拟机
         for(Host host : highHostList){
             Vm migVm = null;
-            // 请求虚拟机资源
-            THREE_WAY.mipsRequest += migVm.getMips();
+
             migMessage[1] += 1;
             // 如果dev>DEV
             if(dev > DEV){
                 for(Vm vm : host.getVmList()){
                     // 最大相关系数策略选择虚拟机
                     final double numberVms = host.getVmList().size();
-                    final double minHistorySize = ToArrayByFileReader.calculateCpuHistoricalMin(FilePath.DATA_PATH
-                            + "\\" + "Threeway-Migration" + "\\cpuUtilization\\vm_" + host.getId());
+                    final double minHistorySize = ToArrayByFileReader.calculateCpuHistoricalMin(
+                            FilePath.DATA_PATH
+                                    + "\\" + "DTCM" + "\\VMUtilization\\vm_" + vm.getId());
                     final double[][] utilization = new double[(int)numberVms][(int)minHistorySize];
 
                     final List<Double> metrics = getCorrelationCoefficients(utilization);
@@ -119,9 +132,10 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
                     }
                 }
             }
-
             // 3、选择目标主机
             if(migVm!=null){
+                // 请求虚拟机资源
+                THREE_WAY.mipsRequest += migVm.getMips();
                 Host goalHost = null;
                 for(Host host1: lowHostList){
                     boolean put = ExampleUtils.vmIsAvailableHost(migVm, host1);
@@ -140,7 +154,6 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
                             migVm,host,goalHost,net[0]+net[1]);
                 }
             }
-
         }
 
         return migMessage;

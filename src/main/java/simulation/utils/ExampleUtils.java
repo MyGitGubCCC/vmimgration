@@ -3,6 +3,8 @@ package simulation.utils;
 import simulation.core.Cloudlet;
 import simulation.core.Host;
 import simulation.core.Vm;
+import sun.misc.VM;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,8 +58,9 @@ public class ExampleUtils {
     public static boolean updateAfterCloudletInVm(Vm vm, Cloudlet cloudlet, List<Cloudlet> cloudletList, int currentTime, List<Cloudlet> removeCloudletList) {
         if (vm != null) {
             // 虚拟机更新资源
-            vm.setAvailableMips(0);
             vm.setAvailableRam(vm.getAvailableRam() - cloudlet.getRam() < 0 ? 0 : (vm.getAvailableRam() - cloudlet.getRam()));
+            //vm.setAvailableMips((1-((vm.getRam() - vm.getAvailableRam())/vm.getRam()))*vm.getMips());
+            vm.setAvailableMips(vm.getAvailableMips() - vm.getMips()*0.1);
             vm.setAvailableBw(0);
             cloudlet.setVm(vm);
             vm.getCloudletList().add(cloudlet);
@@ -144,7 +147,7 @@ public class ExampleUtils {
                 inProgressCloudletSize += vm.getCloudletList().size();
             }*/
             //输出每个vm的利用率
-            String cpuUtilizationFilePath = FilePath.DATA_PATH + "\\" + datacenterName + "\\cpuUtilization\\vm_" + vm.getId();
+            String cpuUtilizationFilePath = FilePath.DATA_PATH + "\\" + datacenterName + "\\VMUtilization\\vm_" + vm.getId();
             //String ramUtilizationFilePath = FilePath.DATA_PATH + "\\" + datacenterName + "\\ramUtilization\\vm_" + vm.getId();
             //String bwUtilizationFilePath = FilePath.DATA_PATH + "\\" + datacenterName + "\\diskUtilization\\vm_" + vm.getId();
 
