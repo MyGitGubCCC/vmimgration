@@ -99,28 +99,21 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
         // 2、组合算法选择虚拟机
         for(Host host : highHostList){
             Vm migVm = null;
-
             migMessage[1] += 1;
             // 如果dev>DEV
             if(dev > DEV){
-                for(Vm vm : host.getVmList()){
                     // 最大相关系数策略选择虚拟机
-                    final double numberVms = host.getVmList().size();
-                    final double minHistorySize = ToArrayByFileReader.calculateCpuHistoricalMin(
-                            FilePath.DATA_PATH
-                                    + "\\DTCM\\VMUtilization\\vm_" + vm.getId());
-                    final double[][] utilization = new double[(int)numberVms][(int)minHistorySize];
-
+                    final double[][] utilization = getUtilizationMatrix(host.getVmList());
                     final List<Double> metrics = getCorrelationCoefficients(utilization);
+
                     double maxMetric = Double.MIN_VALUE;
                     for (int i = 0; i < metrics.size(); i++) {
                         final double metric = metrics.get(i);
                         if (metric > maxMetric) {
                             maxMetric = metric;
-                            migVm = vm;
+                            migVm = host.getVmList().get(i);
                         }
                     }
-                }
             }else {
                 // 如果dev<=DEV
                 // 迁移最大CPU利用率的虚拟机
@@ -132,6 +125,7 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
                     }
                 }
             }
+
             // 3、选择目标主机
             if(migVm!=null){
                 // 请求虚拟机资源
@@ -154,11 +148,49 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
                             migVm,host,goalHost,net[0]+net[1]);
                 }
             }
+
         }
 
         return migMessage;
     }
 
+    /**
+     * 获取给定VM列表的CPU利用率百分比矩阵。
+     * @param vmList
+     * @return
+     */
+    protected double[][] getUtilizationMatrix(final List<Vm> vmList) {
+
+        final int numberVms = vmList.size();
+        //minHistorySize为所有虚拟机中历史利用率的输出次数最少的那个
+        int minHistorySize = Integer.MAX_VALUE;
+        for (int i = 0; i < vmList.size(); i++) {
+            int length = ToArrayByFileReader.calculateCpuHistoricalLength(FilePath.DATA_PATH
+                    + "\\DTCM\\VMUtilization\\vm_" + i);
+            if (length < minHistorySize){
+                minHistorySize = length;
+            }
+        }
+        //final int minHistorySize = 读取文件中有多少条记录;
+//                ToArrayByFileReader.calculateCpuHistoricalMin(FilePath.DATA_PATH + "\\" + "Threeway-Migration" + "\\cpuUtilization\\vm_" + host.getId());
+
+        final double[][] utilization = new double[numberVms][minHistorySize];
+
+        for (int i = 0; i < numberVms; i++) {
+            final double[] vmUtilization = ToArrayByFileReader.historyUtilzationToDouble(FilePath.DATA_PATH
+                    + "\\DTCM\\VMUtilization\\vm_" + i);
+            if (minHistorySize >= 0) {
+                System.arraycopy(vmUtilization, 0, utilization[i], 0, minHistorySize);
+            }
+        }
+        return utilization;
+    }
+
+    /**
+     * 获取相关性系数
+     * @param data
+     * @return
+     */
     protected List<Double> getCorrelationCoefficients(final double[][] data) {
         final int rows = data.length;
         final int cols = data[0].length;
@@ -171,6 +203,7 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
                     x[k++] = data[j];
                 }
             }
+
             // Transpose the matrix so that it fits the linear model
             final double[][] xT = new Array2DRowRealMatrix(x).transpose().getData();
 

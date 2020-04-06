@@ -148,11 +148,11 @@ public class ToArrayByFileReader {
         return datas;
     }
     /**
-     * 历史cpu利用率中最小的
+     * 历史cpu利用率记录的长度
      * @param filename
      * @return
      */
-    public static double calculateCpuHistoricalMin(String filename){
+    public static int calculateCpuHistoricalLength(String filename){
         ArrayList<String> dataSet = new ArrayList<String>();
         try {
             FileReader fr = new FileReader(filename);
@@ -170,16 +170,17 @@ public class ToArrayByFileReader {
         //对ArrayList中存储的字符串进行处理
         int length = dataSet.size();
 
-        //9 10 11 12
-        double mincpu = Double.MAX_VALUE;
-        for (int i = 0; i < length; i++) {
-            String s = dataSet.get(i);
-            double d = Double.parseDouble(s);
-            if(d < mincpu){
-                mincpu = d;
-            }
-        }
-        return mincpu;
+//
+//        double mincpu = Double.MAX_VALUE;
+//        for (int i = 0; i < length; i++) {
+//            String s = dataSet.get(i);
+//            double d = Double.parseDouble(s);
+//            if(d < mincpu){
+//                mincpu = d;
+//            }
+//        }
+
+        return length;
 
     }
 
