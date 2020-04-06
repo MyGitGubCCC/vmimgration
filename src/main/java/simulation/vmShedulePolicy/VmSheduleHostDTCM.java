@@ -108,7 +108,7 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
                     final double numberVms = host.getVmList().size();
                     final double minHistorySize = ToArrayByFileReader.calculateCpuHistoricalMin(
                             FilePath.DATA_PATH
-                                    + "\\" + "DTCM" + "\\VMUtilization\\vm_" + vm.getId());
+                                    + "\\DTCM\\VMUtilization\\vm_" + vm.getId());
                     final double[][] utilization = new double[(int)numberVms][(int)minHistorySize];
 
                     final List<Double> metrics = getCorrelationCoefficients(utilization);
@@ -171,7 +171,6 @@ public class VmSheduleHostDTCM extends VmSheduleHost{
                     x[k++] = data[j];
                 }
             }
-
             // Transpose the matrix so that it fits the linear model
             final double[][] xT = new Array2DRowRealMatrix(x).transpose().getData();
 

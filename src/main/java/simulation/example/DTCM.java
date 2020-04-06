@@ -106,7 +106,7 @@ public class DTCM {
             double migEnergy = 0.0;
             int num = 0;
             //在这里输出利用率和功耗
-            ExampleUtils.getInProgressCloudletSize(DatacenterName, hostList, vmList);
+            //ExampleUtils.getInProgressCloudletSize(DatacenterName, hostList, vmList);
             //查看有没有任务已经完成，如果有，移除任务
             ExampleUtils.updateFinishedCloudlet(starSimTime, hostList, cloudletList);
             if (cloudletListQueue.size() != 0 ){
@@ -119,6 +119,7 @@ public class DTCM {
                 CreateDatacenterUtiles.createVmRelated(vmList);
                 // 从队列中移除已经放置的任务
                 cloudletListQueue.removeAll(removeCloudletList);
+                ExampleUtils.getInProgressCloudletSize(DatacenterName, hostList, vmList);
                 //进行虚拟机的迁移（重点），每个比较实验，不同的迁移策略，都是在这个的过程不同
                 migMessage = vmSheduleHost.getVmMigrationHost(
                         hostList, starSimTime, migEnergy, num,mipsRequest, mipsAllcation,vmList);

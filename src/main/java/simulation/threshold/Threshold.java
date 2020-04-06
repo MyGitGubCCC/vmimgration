@@ -10,9 +10,8 @@ import simulation.utils.ToArrayByFileReader;
  */
 public class Threshold {
     public static void main(String[] args) {
-        double ed[] = ToArrayByFileReader.test(
-                "D:\\ideaProject\\vmimgration\\src\\file\\DATA\\TEST\\ed",
-                0);
+        double ed[] = ToArrayByFileReader.historyUtilzationToDouble(
+                "D:\\ideaProject\\vmimgration\\src\\file\\DATA\\TEST\\ed");
         double max = Double.MIN_VALUE;
         double min = Double.MAX_VALUE;
         for(int i=0;i<ed.length;i++){

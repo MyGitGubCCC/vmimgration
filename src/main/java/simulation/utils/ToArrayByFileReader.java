@@ -120,9 +120,8 @@ public class ToArrayByFileReader {
     /**
      * 对ed聚类时使用的，读取文件的方法
      * @param filename
-     * @param a
      */
-    public static double[] test(String filename,int a){
+    public static double[] historyUtilzationToDouble(String filename){
         ArrayList<String> dataSet = new ArrayList<String>();
         try {
             FileReader fr = new FileReader(filename);

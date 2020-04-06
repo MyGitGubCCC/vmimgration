@@ -11,17 +11,16 @@ public class KmeansTest {
         //初始化一个Kmean对象，将k置为2
         Kmeans k=new Kmeans(3);
         ArrayList<double[]> dataSet = new ArrayList<double[]>();
-        /*double load2[] = ToArrayByFileReader.test(
+        /*double load2[] = ToArrayByFileReader.historyUtilzationToDouble(
                 "D:\\ideaProject\\vmimgration\\src\\file\\DATA\\TEST\\load2",
                 0);
 
-        double net[] = ToArrayByFileReader.test(
+        double net[] = ToArrayByFileReader.historyUtilzationToDouble(
                 "D:\\ideaProject\\vmimgration\\src\\file\\DATA\\TEST\\netEnger",
                 1);*/
 
-        double ed[] = ToArrayByFileReader.test(
-                "D:\\ideaProject\\vmimgration\\src\\file\\DATA\\TEST\\ed",
-                2);
+        double ed[] = ToArrayByFileReader.historyUtilzationToDouble(
+                "D:\\ideaProject\\vmimgration\\src\\file\\DATA\\TEST\\ed");
 
         /*for(int i=0;i<load2.length;i++){
             for(int j=i;j<net.length;j++){
